@@ -1,0 +1,33 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.api.v1.routes_generate import router as generate_router
+from app.api.v1.routes_usage import router as usage_router
+
+from app.db.session import engine
+from app.db.base import Base
+from app.db import models  # noqa: F401
+
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(
+    title="BYOK LLM Router",
+    version="0.1.0",
+    description="BYOK (Bring Your Own Key) routing, cost control, policies, and fallback for LLM providers.",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+app.include_router(generate_router, prefix="/v1", tags=["generate"])
+app.include_router(usage_router, prefix="/v1", tags=["usage"])

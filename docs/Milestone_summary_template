@@ -1,0 +1,32 @@
+# Milestone X — <Title>
+
+
+## Goal
+One short sentence describing what this milestone achieves.
+
+
+## What Was Added
+- Bullet list of new components
+- New APIs
+- New models
+- New services
+
+
+## Architecture Changes
+- How data flows now (before → after)
+- New responsibilities
+
+
+## Validation & Safety
+- What is validated
+- How failures are handled
+
+
+## How To Test
+- Example curl requests
+- Expected responses
+
+
+## Future Extensions
+- What this milestone enables next
+

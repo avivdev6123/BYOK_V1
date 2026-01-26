@@ -7,7 +7,8 @@ from app.api.v1.routes_prompts import router as prompts_router
 
 from app.db.session import engine
 from app.db.base import Base
-from app.db import models  # noqa: F401
+from app.db import models, prompt_models  # noqa: F401
+
 
 Base.metadata.create_all(bind=engine)
 

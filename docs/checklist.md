@@ -136,4 +136,13 @@ Documentation is part of the system, not an afterthought.
 
 ---
 
+## 9) Scripts Executions
+Execution Rule:
+
+Never run internal project files directly with python path/to/file.py.
+Always use
+```bash
+python -m package.module
+ ```
+so absolute imports resolve correctly.
 This checklist turns BYOK into a **production-grade AI infrastructure project**, not a demo.

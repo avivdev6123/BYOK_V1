@@ -116,6 +116,7 @@ def list_prompts(db: Session = Depends(get_db)):
             "id": r.id,
             "username": r.username,
             "created_at": r.created_at.isoformat(),
+            "prompt": r.raw_prompt,
             # Show whether the profile exists (useful while debugging migrations)
             "has_profile": bool(r.prompt_profile_json),
         }

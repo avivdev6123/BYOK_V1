@@ -18,12 +18,14 @@ from app.schemas.prompts import PromptProfile
 
 
 # Providers we support in the router (expand later)
-ProviderName = Literal["gemini", "openai"]
+ProviderName = Literal["gemini", "openai", "anthropic", "perplexity"]
 
 # Simple tiers (used for deterministic ranking & future policy engines)
 CostTier = Literal["low", "medium", "high"]
 LatencyTier = Literal["fast", "normal"]
 
+# Keep in sync with PromptProfile.task_type (Milestone 2)
+TaskType = Literal["web_search", "text_generation", "coding", "summarization", "extraction"]
 
 class RouteConstraints(BaseModel):
     """
@@ -31,6 +33,7 @@ class RouteConstraints(BaseModel):
     Used to filter catalog models.
     """
 
+    task_type: TaskType
     needs_web: bool
     needs_code: bool
     output_format: Literal["text", "json"]
@@ -52,7 +55,7 @@ class ModelCandidate(BaseModel):
     key: str = Field(min_length=1)
 
     # Deterministic scoring (lower is better, but we store float for flexibility)
-    score: float = Field(ge=0.0)
+    score: float
 
     # Explainability for why it was included / ranked
     reason: str = Field(min_length=1)

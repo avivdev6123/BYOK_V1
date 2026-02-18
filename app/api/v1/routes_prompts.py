@@ -33,9 +33,16 @@ from app.services.gemini_profiler import GeminiPromptProfiler
 # Router object to be mounted in main.py
 router = APIRouter()
 
-# Create ONE profiler instance at import time
-# This avoids re-initializing the Gemini client on every request
-profiler = GeminiPromptProfiler()
+# Lazy singleton — created on first request, not at import time.
+# Avoids crash if GEMINI_API_KEY isn't loaded yet during module import.
+_profiler: GeminiPromptProfiler | None = None
+
+
+def _get_profiler() -> GeminiPromptProfiler:
+    global _profiler
+    if _profiler is None:
+        _profiler = GeminiPromptProfiler()
+    return _profiler
 
 
 @router.post("/prompts", response_model=PromptCreateWithProfileResponse)
@@ -68,7 +75,7 @@ def create_prompt(
     # ----------------------------
     # This returns a PromptProfile Pydantic object (already validated)
     try:
-        profile: PromptProfile = profiler.profile(raw_prompt)
+        profile: PromptProfile = _get_profiler().profile(raw_prompt)
     except Exception as e:
         # If Gemini fails or returns invalid JSON, return 502 (bad gateway)
         # because we depend on an external provider.

@@ -94,6 +94,11 @@ Classify this prompt:
         )
 
         text = (response.text or "").strip()
+        # Strip markdown code fences if Gemini wraps the JSON
+        if text.startswith("```"):
+            text = text.split("\n", 1)[1]  # remove first line (```json)
+            text = text.rsplit("```", 1)[0]  # remove closing ```
+            text = text.strip()
         # Convert Python booleans to JSON booleans if Gemini slips
         text = (text.replace("True", "true").replace("False", "false")
                 .replace("None", "null"))

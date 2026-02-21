@@ -7,9 +7,16 @@ Request: prompt_id (references an already-profiled prompt)
 Response: LLM output + routing metadata
 """
 
+from typing import Optional
+
 from pydantic import BaseModel, Field
 
 from app.schemas.routing import RouteDecision
+
+
+class WebSource(BaseModel):
+    title: str
+    url: str
 
 
 class CompletionRequest(BaseModel):
@@ -23,3 +30,4 @@ class CompletionResponse(BaseModel):
     model: str
     attempts: int = Field(ge=1)
     route_decision: RouteDecision
+    sources: Optional[list[WebSource]] = None

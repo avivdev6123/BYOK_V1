@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.db.prompt_models import Prompt
 from app.schemas.prompts import PromptProfile
-from app.schemas.completion import CompletionResponse
+from app.schemas.completion import CompletionResponse, WebSource
 from app.services.model_catalog_repo import load_catalog
 from app.services.model_selector import ModelSelector
 from app.services.deterministic_router import DeterministicRouter
@@ -59,18 +59,21 @@ def execute_completion(prompt_id: int, db: Session, client: LLMCompletionClient)
     for candidate in chain:
         attempts += 1
         try:
-            text = client.generate(
+            result = client.generate(
                 prompt=row.raw_prompt,
                 provider=candidate.provider,
                 model=candidate.model,
+                needs_web=profile.needs_web,
             )
+            sources = [WebSource(**s) for s in result.sources] if result.sources else None
             return CompletionResponse(
                 prompt_id=prompt_id,
-                text=text,
+                text=result.text,
                 provider=candidate.provider,
                 model=candidate.model,
                 attempts=attempts,
                 route_decision=decision,
+                sources=sources,
             )
         except Exception as e:
             last_error = e

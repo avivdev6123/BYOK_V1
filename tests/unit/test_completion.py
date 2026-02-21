@@ -15,7 +15,7 @@ from app.db.base import Base
 from app.db.prompt_models import Prompt
 from app.db.model_catalog_models import ModelCatalog
 from app.services.completion_service import execute_completion
-from app.services.LLM_completion import LLMCompletionClient
+from app.services.LLM_completion import LLMCompletionClient, LLMResult
 
 
 @pytest.fixture
@@ -74,7 +74,7 @@ def db():
 def test_completion_happy_path(db):
     """First candidate succeeds — should return on first attempt."""
     client = MagicMock(spec=LLMCompletionClient)
-    client.generate.return_value = "def sort_list(lst): return sorted(lst)"
+    client.generate.return_value = LLMResult(text="def sort_list(lst): return sorted(lst)")
 
     result = execute_completion(prompt_id=1, db=db, client=client)
 
@@ -92,7 +92,7 @@ def test_completion_fallback(db):
     client = MagicMock(spec=LLMCompletionClient)
     client.generate.side_effect = [
         RuntimeError("Provider down"),
-        "def sort_list(lst): return sorted(lst)",
+        LLMResult(text="def sort_list(lst): return sorted(lst)"),
     ]
 
     result = execute_completion(prompt_id=1, db=db, client=client)

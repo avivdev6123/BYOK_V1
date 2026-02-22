@@ -10,13 +10,16 @@ from app.api.v1.routes_usage import router as usage_router
 from app.api.v1.routes_prompts import router as prompts_router
 from app.api.v1.routes_route_to_model import router as routing_router
 from app.api.v1.routes_completion import router as completion_router
+from app.api.v1.routes_auth import router as auth_router
+from app.api.v1.routes_keys import router as keys_router
 
-from app.db.session import engine
+from app.db.session import engine, run_migrations
 from app.db.base import Base
 from app.db import models, prompt_models, model_catalog_models  # noqa: F401
 
 
 Base.metadata.create_all(bind=engine)
+run_migrations()
 
 app = FastAPI(
     title="BYOK LLM Router",
@@ -42,3 +45,5 @@ app.include_router(usage_router, prefix="/v1", tags=["usage"])
 app.include_router(prompts_router, prefix="/v1", tags=["prompts"])
 app.include_router(routing_router, prefix="/v1", tags=["model_routing"])
 app.include_router(completion_router, prefix="/v1", tags=["completions"])
+app.include_router(auth_router, prefix="/v1", tags=["auth"])
+app.include_router(keys_router, prefix="/v1", tags=["keys"])

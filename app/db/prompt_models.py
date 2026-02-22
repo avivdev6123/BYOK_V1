@@ -6,7 +6,7 @@ We keep it separate from older models to allow incremental development.
 """
 
 from datetime import datetime
-from sqlalchemy import Integer, String, DateTime, Text, JSON
+from sqlalchemy import Integer, String, DateTime, Text, JSON, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -30,9 +30,9 @@ class Prompt(Base):
     # Timestamp when the prompt was stored (UTC time)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
-    # For MVP, we identify users by username string
-    # (Later this will become a foreign key to a users table or auth system)
+    # Username string kept for backward compat; user_id links to auth system
     username: Mapped[str] = mapped_column(String, index=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
 
     # The raw text of the prompt as sent by the user
     raw_prompt: Mapped[str] = mapped_column(Text)

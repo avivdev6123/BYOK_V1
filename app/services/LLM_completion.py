@@ -34,31 +34,34 @@ class LLMCompletionClient:
     Dispatches to the correct provider SDK based on provider name.
     """
 
-    def __init__(self):
+    def __init__(self, keys: dict[str, str] | None = None):
+        """
+        keys: optional dict like {"gemini": "AIza...", "openai": "sk-..."}.
+        User keys take priority; falls back to env vars.
+        """
+        self._keys = keys or {}
         self._clients: dict = {}
+
+    def _get_api_key(self, provider: str) -> str:
+        env_var_map = {"gemini": "GEMINI_API_KEY", "openai": "OPENAI_API_KEY", "anthropic": "ANTHROPIC_API_KEY"}
+        key = self._keys.get(provider) or os.getenv(env_var_map.get(provider, ""))
+        if not key:
+            raise RuntimeError(f"No API key available for {provider}")
+        return key
 
     def _get_gemini_client(self) -> genai.Client:
         if "gemini" not in self._clients:
-            api_key = os.getenv("GEMINI_API_KEY")
-            if not api_key:
-                raise RuntimeError("Missing GEMINI_API_KEY")
-            self._clients["gemini"] = genai.Client(api_key=api_key)
+            self._clients["gemini"] = genai.Client(api_key=self._get_api_key("gemini"))
         return self._clients["gemini"]
 
     def _get_openai_client(self) -> OpenAI:
         if "openai" not in self._clients:
-            api_key = os.getenv("OPENAI_API_KEY")
-            if not api_key:
-                raise RuntimeError("Missing OPENAI_API_KEY")
-            self._clients["openai"] = OpenAI(api_key=api_key)
+            self._clients["openai"] = OpenAI(api_key=self._get_api_key("openai"))
         return self._clients["openai"]
 
     def _get_anthropic_client(self) -> Anthropic:
         if "anthropic" not in self._clients:
-            api_key = os.getenv("ANTHROPIC_API_KEY")
-            if not api_key:
-                raise RuntimeError("Missing ANTHROPIC_API_KEY")
-            self._clients["anthropic"] = Anthropic(api_key=api_key)
+            self._clients["anthropic"] = Anthropic(api_key=self._get_api_key("anthropic"))
         return self._clients["anthropic"]
 
     def generate(self, prompt: str, provider: ProviderName, model: str, needs_web: bool = False) -> LLMResult:

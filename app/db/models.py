@@ -1,4 +1,4 @@
-from sqlalchemy import String, Integer, Float, Boolean, DateTime, ForeignKey, Text
+from sqlalchemy import String, Integer, Float, Boolean, DateTime, ForeignKey, Text, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from app.db.base import Base
@@ -7,9 +7,12 @@ class User(Base):
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     username: Mapped[str] = mapped_column(String, unique=True, index=True)
+    password_hash: Mapped[str | None] = mapped_column(String, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     budgets = relationship("Budget", back_populates="user")
     requests = relationship("RequestLog", back_populates="user")
+    provider_keys = relationship("ProviderKey", back_populates="user")
 
 class Budget(Base):
     __tablename__ = "budgets"
@@ -41,14 +44,18 @@ class RequestLog(Base):
     user = relationship("User", back_populates="requests")
 
 class ProviderKey(Base):
-    """
-    MVP: store keys later (encrypted). For now keep structure.
-    """
     __tablename__ = "provider_keys"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     provider: Mapped[str] = mapped_column(String, index=True)
-    api_key_masked: Mapped[str] = mapped_column(String)  # store masked (e.g. sk-***abcd)
+    api_key_masked: Mapped[str] = mapped_column(String)
+    api_key_encrypted: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status: Mapped[str] = mapped_column(String, default="pending")
+    validated_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    discovered_models: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="provider_keys")
 
 class ModelCatalog(Base):
     __tablename__ = "model_catalog"

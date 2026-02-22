@@ -12,11 +12,10 @@ Responsibilities:
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-# DB session dependency (FastAPI injects a DB session into each request)
 from app.db.session import get_db
-
-# ORM model (prompts table)
 from app.db.prompt_models import Prompt
+from app.db.models import User
+from app.api.dependencies import get_optional_user
 
 # Pydantic schemas (request + response)
 from app.schemas.prompts import (
@@ -48,7 +47,8 @@ def _get_profiler() -> GeminiPromptProfiler:
 @router.post("/prompts", response_model=PromptCreateWithProfileResponse)
 def create_prompt(
     req: PromptCreateRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user: User | None = Depends(get_optional_user),
 ) -> PromptCreateWithProfileResponse:
     """
     Milestone 2 behavior:
@@ -87,10 +87,10 @@ def create_prompt(
 
     # Create ORM object
     row = Prompt(
-        username=req.username,
+        username=user.username if user else req.username,
+        user_id=user.id if user else None,
         raw_prompt=raw_prompt,
-        # Store JSON as a python dict in DB (SQLAlchemy JSON type handles serialization)
-        prompt_profile_json=profile.model_dump()
+        prompt_profile_json=profile.model_dump(),
     )
 
     # Persist to database
